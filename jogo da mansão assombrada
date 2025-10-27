@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 A Mansão Assombrada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e);
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #8b0000;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #ff4444;
+            text-shadow: 0 0 10px #ff0000;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #ccc;
+        }
+
+        .content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .choices {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .choice-btn {
+            background: linear-gradient(45deg, #2d2d2d, #4a4a4a);
+            color: white;
+            border: 2px solid #8b0000;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: linear-gradient(45deg, #8b0000, #ff0000);
+            transform: translateX(10px);
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .inventory {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border: 1px solid #8b0000;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+
+        .inventory h3 {
+            color: #ff4444;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inventory-item {
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .health-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border: 1px solid #8b0000;
+            border-radius: 8px;
+        }
+
+        .hearts {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            color: #ff4444;
+            font-size: 1.5em;
+        }
+
+        .story-text {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px #000;
+        }
+
+        .location {
+            color: #ff4444;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .item-found {
+            background: linear-gradient(45deg, #004400, #006600);
+            border: 2px solid #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            animation: pulse 1s infinite;
+        }
+
+        .game-over {
+            background: linear-gradient(45deg, #400000, #8b0000);
+            border: 2px solid #ff0000;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .victory {
+            background: linear-gradient(45deg, #004400, #008800);
+            border: 2px solid #00ff00;
+            text-align: center;
+            padding: 30px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #8b0000, #ff0000);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 20px;
+            right: 200px;
+            background: rgba(139, 0, 0, 0.8);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Tela Inicial -->
+        <div id="screen-start" class="screen active">
+            <div class="header">
+                <h1 class="title">🔦 A MANSÃO ASSOMBRADA 🔦</h1>
+                <p class="subtitle">Uma aventura de terror em 3 níveis</p>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>🌙 A Mansão Blackwood permanece abandonada há décadas, mas estranhos acontecimentos têm sido relatados nas redondezas.</p>
+                    <p>🔮 Lendas locais falam de rituais antigos e almas perdidas...</p>
+                    <p>💀 Você tem coragem de investigar?</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-level1-1')">🚪 INICIAR JORNADA</button>
+                    <button class="choice-btn" onclick="showScreen('screen-instructions')">📖 INSTRUÇÕES</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instruções -->
+        <div id="screen-instructions" class="screen">
+            <div class="header">
+                <h2>📖 COMO JOGAR</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>🎯 <strong>Objetivo:</strong> Sobreviva aos 3 níveis da mansão e descubra seu segredo</p>
+                    <p>❤️ <strong>Vida:</strong> Você começa com 5 corações. Escolhas erradas custam vida!</p>
+                    <p>🎒 <strong>Itens:</strong> Colete itens para ajudar na sua jornada</p>
+                    <p>⚡ <strong>Escolhas:</strong> Cada decisão afeta o destino da sua aventura</p>
+                    <p>🔦 <strong>Dica:</strong> Explore tudo e preste atenção aos detalhes!</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-start')">🔙 VOLTAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nível 1: Chegada à Mansão -->
+        <div id="screen-level1-1" class="screen">
+            <div class="level-indicator">NÍVEL 1: A CHEGADA</div>
+            <div class="header">
+                <h2>🌙 ENTRADA DA MANSÃO</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>Você está frente à Mansão Blackwood. O vento uiva entre as árvores mortas e a porta principal range misteriosamente.</p>
+                    <p>Uma luz pisca brevemente na janela do segundo andar...</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-level1-2')">🚪 ENTRAR NA MANSÃO</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level1-3')">🔍 INVESTIGAR A JANELA</button>
+                    <button class="choice-btn" onclick="loseHealth(5, 'screen-bad-ending1')">🏃 CORRER ENQUANTO É TEMPO</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level1-2" class="screen">
+            <div class="level-indicator">NÍVEL 1: A CHEGADA</div>
+            <div class="header">
+                <h2>🚪 DENTRO DA MANSÃO</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>O interior é ainda mais sombrio que o exterior. Poeira cobre todos os móveis.</p>
+                    <p>De repente, uma figura sombria desaparece na escada à sua frente!</p>
+                    <p>O ar fica frio subitamente...</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-level2-1')">⬆️ SUBIR AS ESCADAS</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level1-4')">⬇️ INVESTIGAR O PORÃO</button>
+                    <button class="choice-btn" onclick="findItem('lanterna', 'screen-level1-2')">📦 ABRIR BAÚ NO CANTO</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level1-3" class="screen">
+            <div class="level-indicator">NÍVEL 1: A CHEGADA</div>
+            <div class="header">
+                <h2>🔍 JANELA QUEBRADA</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>Através da janela quebrada, você avista um diário abandonado em cima de uma mesa.</p>
+                    <p>A capa está manchada de algo escuro... será sangue?</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="findItem('diario', 'screen-level1-2')">📖 LER O DIÁRIO</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level1-1')">🔙 VOLTAR PARA ENTRADA</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level1-4" class="screen">
+            <div class="level-indicator">NÍVEL 1: A CHEGADA</div>
+            <div class="header">
+                <h2>⬇️ PORÃO</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>O porão é úmido e escuro. O cheiro de mofo é quase insuportável.</p>
+                    <p>Você ouve um sussurro vindo das sombras...</p>
+                    <p>"Saia... enquanto pode..."</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-level2-1')">🔙 VOLTAR PARA SALA PRINCIPAL</button>
+                    <button class="choice-btn" onclick="findItem('chave', 'screen-level1-4')">🗝️ REVISTAR ESTANTE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nível 2: Corredores Sombrios -->
+        <div id="screen-level2-1" class="screen">
+            <div class="level-indicator">NÍVEL 2: CORREDORES SOMBRIOS</div>
+            <div class="header">
+                <h2>⬆️ CORREDOR SUPERIOR</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>No segundo andar, um longo corredor se estende à sua frente.</p>
+                    <p>🚨 Sons de arrastar vêm do fim do corredor, seguidos por um choro baixo...</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-level2-2')">👣 SEGUIR OS SONS</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level2-3')">🚶 INVESTIGAR O QUARTO</button>
+                    <button class="choice-btn" onclick="loseHealth(2, 'screen-level2-1')">📞 GRITAR POR AJUDA</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level2-2" class="screen">
+            <div class="level-indicator">NÍVEL 2: CORREDORES SOMBRIOS</div>
+            <div class="header">
+                <h2>👣 FIM DO CORREDOR</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>👻 ERA UMA ARMADILHA! A porta tranca atrás de você com um estrondo.</p>
+                    <p>Risadas ecoam pelas paredes enquanto você percebe que está encurralado!</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="loseHealth(3, 'screen-level2-2')">💀 TENTAR ABRIR À FORÇA</button>
+                    <button class="choice-btn" onclick="useItem('lanterna', 'screen-level3-1', 'screen-level2-4')">🔦 USAR LANTERNA</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level2-4')">📱 USAR CELULAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level2-3" class="screen">
+            <div class="level-indicator">NÍVEL 2: CORREDORES SOMBRIOS</div>
+            <div class="header">
+                <h2>🚶 QUARTO MISTERIOSO</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>O quarto parece ter pertencido a uma criança. Brinquedos velhos estão espalhados pelo chão.</p>
+                    <p>No armário, você encontra um amuleto antigo com símbolos estranhos...</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="findItem('amuleto', 'screen-level2-1')">📿 PEGAR AMULETO</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level2-1')">🔙 VOLTAR AO CORREDOR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level2-4" class="screen">
+            <div class="level-indicator">NÍVEL 2: CORREDORES SOMBRIOS</div>
+            <div class="header">
+                <h2>📱 LUZ DO CELULAR</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>Com a luz fraca do celular, você consegue ver uma pequena fresta na parede.</p>
+                    <p>Parece ser uma passagem secreta, mas está muito escuro para ver adiante...</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="loseHealth(2, 'screen-level2-4')">🕳️ ENTRAR NO ESCURO</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level2-2')">🔙 VOLTAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nível 3: Confronto Final -->
+        <div id="screen-level3-1" class="screen">
+            <div class="level-indicator">NÍVEL 3: SEGREDO FINAL</div>
+            <div class="header">
+                <h2>🔦 PASSAGEM SECRETA</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>Sua lanterna revela uma escada estreita que leva a um santuário subterrâneo.</p>
+                    <p>🧙 Um ritual macabro está acontecendo! Figuras encapuzadas rodeiam um altar.</p>
+                    <p>"O iniciado chegou!" - grita uma voz cavernosa.</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="useItem('amuleto', 'screen-good-ending2', 'screen-level3-2')">📿 USAR AMULETO PROTETOR</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level3-2')">⚔️ ENFRENTAR O LÍDER</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level3-3')">🏃 TENTAR FUGIR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level3-2" class="screen">
+            <div class="level-indicator">NÍVEL 3: SEGREDO FINAL</div>
+            <div class="header">
+                <h2>⚔️ CONFRONTO</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>O líder do culto avança em sua direção! Seus olhos brilham com uma luz sobrenatural.</p>
+                    <p>"Sua alma será nossa oferenda!"</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="useItem('diario', 'screen-good-ending1', 'screen-bad-ending3')">📖 USAR INFORMAÇÕES DO DIÁRIO</button>
+                    <button class="choice-btn" onclick="loseHealth(5, 'screen-bad-ending2')">💀 LUTAR CORPO A CORPO</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level3-3')">🏃 RECUAR E FUGIR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-level3-3" class="screen">
+            <div class="level-indicator">NÍVEL 3: SEGREDO FINAL</div>
+            <div class="header">
+                <h2>🏃 FUGA DESESPERADA</h2>
+            </div>
+            <div class="content">
+                <div class="story-text">
+                    <p>Você corre pela passagem secreta enquanto gritos ecoam atrás de você.</p>
+                    <p>Uma saída! A luz da lua aparece à frente...</p>
+                </div>
+                <div class="choices">
+                    <button class="choice-btn" onclick="showScreen('screen-good-ending3')">🌙 SAIR PELA FLORESTA</button>
+                    <button class="choice-btn" onclick="showScreen('screen-level3-1')">🔙 VOLTAR E ENFRENTAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finais -->
+        <div id="screen-good-ending1" class="screen">
+            <div class="content victory">
+                <h2>🏆 VITÓRIA - SABEDORIA</h2>
+                <div class="story-text">
+                    <p>Usando as informações do diário, você revela o verdadeiro nome do demônio que controla o culto!</p>
+                    <p>O ritual é quebrado e as almas presas são libertadas.</p>
+                    <p>🌟 Você salvou não apenas a si mesmo, mas todos que estavam presos na mansão!</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 JOGAR NOVAMENTE</button>
+            </div>
+        </div>
+
+        <div id="screen-good-ending2" class="screen">
+            <div class="content victory">
+                <h2>🏆 VITÓRIA - PROTEÇÃO</h2>
+                <div class="story-text">
+                    <p>O amuleto antigo emite uma luz brilhante que dissipa as entidades malignas!</p>
+                    <p>O culto é destruído e a mansão finalmente encontra paz.</p>
+                    <p>✨ Sua preparação e cuidado foram recompensados!</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 JOGAR NOVAMENTE</button>
+            </div>
+        </div>
+
+        <div id="screen-good-ending3" class="screen">
+            <div class="content victory">
+                <h2>🏆 VITÓRIA - SOBREVIVÊNCIA</h2>
+                <div class="story-text">
+                    <p>Você escapa pela floresta enquanto a mansão desmorona atrás de você!</p>
+                    <p>As autoridades acreditam na sua história e selam a área para sempre.</p>
+                    <p>🌅 Você sobreviveu para contar a história!</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 JOGAR NOVAMENTE</button>
+            </div>
+        </div>
+
+        <div id="screen-bad-ending1" class="screen">
+            <div class="content game-over">
+                <h2>💀 FIM TRÁGICO - COVARDIA</h2>
+                <div class="story-text">
+                    <p>Você fugiu, mas a maldição da mansão te persegue...</p>
+                    <p>Nunca mais conseguiu dormir em paz, ouvindo sempre os sussurros nas sombras.</p>
+                    <p>😱 Algumas portas nunca deveriam ser abertas, mas algumas nunca deveriam ser fechadas...</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 TENTAR NOVAMENTE</button>
+            </div>
+        </div>
+
+        <div id="screen-bad-ending2" class="screen">
+            <div class="content game-over">
+                <h2>💀 FIM SOMBRIO - CAPTURADO</h2>
+                <div class="story-text">
+                    <p>O líder do culto era muito poderoso para enfrentar diretamente.</p>
+                    <p>Você se torna mais uma alma presa na mansão, aguardando o próximo visitante...</p>
+                    <p>⛓️ A maldição continua!</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 TENTAR NOVAMENTE</button>
+            </div>
+        </div>
+
+        <div id="screen-bad-ending3" class="screen">
+            <div class="content game-over">
+                <h2>💀 FIM MACABRO - SACRIFÍCIO</h2>
+                <div class="story-text">
+                    <p>Sem as informações necessárias, você não consegue impedir o ritual.</p>
+                    <p>Sua alma se torna a oferenda que completa o feitiço sombrio.</p>
+                    <p>🔮 A escuridão se espalha pela região...</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()">🔄 TENTAR NOVAMENTE</button>
+            </div>
+        </div>
+
+        <!-- Interface do Jogador -->
+        <div class="health-bar">
+            <h3>VIDA</h3>
+            <div class="hearts" id="hearts">
+                <!-- Corações serão gerados por JavaScript -->
+            </div>
+        </div>
+
+        <div class="inventory">
+            <h3>INVENTÁRIO</h3>
+            <div class="inventory-items" id="inventory">
+                <!-- Itens serão adicionados por JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado do jogo
+        let gameState = {
+            health: 5,
+            inventory: [],
+            currentScreen: 'screen-start'
+        };
+
+        // Inicializar jogo
+        function initGame() {
+            updateHearts();
+            updateInventory();
+            showScreen('screen-start');
+        }
+
+        // Mostrar tela específica
+        function showScreen(screenId) {
+            // Esconder todas as telas
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Mostrar tela desejada
+            document.getElementById(screenId).classList.add('active');
+            gameState.currentScreen = screenId;
+        }
+
+        // Atualizar corações
+        function updateHearts() {
+            const heartsContainer = document.getElementById('hearts');
+            heartsContainer.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = i < gameState.health ? '❤️' : '🖤';
+                heartsContainer.appendChild(heart);
+            }
+        }
+
+        // Atualizar inventário
+        function updateInventory() {
+            const inventoryContainer = document.getElementById('inventory');
+            inventoryContainer.innerHTML = '';
+            
+            gameState.inventory.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.textContent = getItemIcon(item) + ' ' + item;
+                inventoryContainer.appendChild(itemElement);
+            });
+        }
+
+        // Obter ícone do item
+        function getItemIcon(item) {
+            const icons = {
+                'lanterna': '🔦',
+                'diario': '📖',
+                'chave': '🗝️',
+                'amuleto': '📿'
+            };
+            return icons[item] || '📦';
+        }
+
+        // Perder vida
+        function loseHealth(amount, nextScreen) {
+            gameState.health -= amount;
+            updateHearts();
+            
+            if (gameState.health <= 0) {
+                gameState.health = 0;
+                showScreen('screen-bad-ending' + (Math.floor(Math.random() * 3) + 1));
+            } else {
+                showScreen(nextScreen);
+            }
+        }
+
+        // Encontrar item
+        function findItem(item, nextScreen) {
+            if (!gameState.inventory.includes(item)) {
+                gameState.inventory.push(item);
+                updateInventory();
+                
+                // Mostrar mensagem de item encontrado
+                alert(`🎉 Você encontrou: ${getItemIcon(item)} ${item.toUpperCase()}!`);
+            }
+            showScreen(nextScreen);
+        }
+
+        // Usar item
+        function useItem(item, successScreen, failScreen) {
+            if (gameState.inventory.includes(item)) {
+                showScreen(successScreen);
+            } else {
+                showScreen(failScreen);
+            }
+        }
+
+        // Reiniciar jogo
+        function restartGame() {
+            gameState = {
+                health: 5,
+                inventory: [],
+                currentScreen: 'screen-start'
+            };
+            initGame();
+        }
+
+        // Iniciar o jogo quando a página carregar
+        window.onload = initGame;
+    </script>
+</body>
+</html>
