@@ -82,12 +82,18 @@
             font-size: 1.1em;
             transition: all 0.3s ease;
             text-align: left;
+            position: relative;
+            overflow: hidden;
         }
 
         .choice-btn:hover {
             background: linear-gradient(45deg, #8b0000, #ff0000);
             transform: translateX(10px);
             box-shadow: 0 0 15px #ff0000;
+        }
+
+        .choice-btn:active {
+            transform: translateX(5px) scale(0.98);
         }
 
         .inventory {
@@ -99,6 +105,7 @@
             border: 1px solid #8b0000;
             border-radius: 8px;
             min-width: 150px;
+            z-index: 100;
         }
 
         .inventory h3 {
@@ -118,6 +125,13 @@
             padding: 5px 10px;
             border-radius: 5px;
             font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .inventory-item:hover {
+            background: #555;
+            transform: scale(1.05);
         }
 
         .health-bar {
@@ -128,6 +142,7 @@
             padding: 15px;
             border: 1px solid #8b0000;
             border-radius: 8px;
+            z-index: 100;
         }
 
         .hearts {
@@ -138,6 +153,12 @@
         .heart {
             color: #ff4444;
             font-size: 1.5em;
+            transition: all 0.3s;
+        }
+
+        .heart.lost {
+            color: #333;
+            transform: scale(0.8);
         }
 
         .story-text {
@@ -187,6 +208,12 @@
             50% { transform: scale(1.05); }
         }
 
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
         .restart-btn {
             background: linear-gradient(45deg, #8b0000, #ff0000);
             color: white;
@@ -196,6 +223,12 @@
             cursor: pointer;
             font-size: 1.1em;
             margin-top: 15px;
+            transition: all 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #ff0000;
         }
 
         .level-indicator {
@@ -206,6 +239,124 @@
             padding: 8px 15px;
             border-radius: 5px;
             font-size: 0.9em;
+        }
+
+        /* Novos estilos para melhorias */
+        .game-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid #8b0000;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .control-btn:hover {
+            background: rgba(139, 0, 0, 0.7);
+        }
+
+        .score-display {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px 15px;
+            border: 1px solid #8b0000;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .hint-container {
+            position: fixed;
+            bottom: 70px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px 15px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            font-size: 0.9em;
+            max-width: 300px;
+            display: none;
+        }
+
+        .hint-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .hint-btn:hover {
+            background: rgba(255, 204, 0, 0.2);
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .typing-effect {
+            overflow: hidden;
+            border-right: 2px solid #ff4444;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #ff4444 }
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 10px;
+            }
+            
+            .health-bar, .inventory, .score-display, .hint-container, .game-controls {
+                position: relative;
+                top: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
+                margin-bottom: 15px;
+            }
+            
+            .title {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -224,8 +375,9 @@
                     <p>💀 Você tem coragem de investigar?</p>
                 </div>
                 <div class="choices">
-                    <button class="choice-btn" onclick="showScreen('screen-level1-1')">🚪 INICIAR JORNADA</button>
+                    <button class="choice-btn" onclick="startGame()">🚪 INICIAR JORNADA</button>
                     <button class="choice-btn" onclick="showScreen('screen-instructions')">📖 INSTRUÇÕES</button>
+                    <button class="choice-btn" onclick="showScreen('screen-load-game')" id="continue-btn" style="display:none;">🔄 CONTINUAR JOGO</button>
                 </div>
             </div>
         </div>
@@ -242,6 +394,7 @@
                     <p>🎒 <strong>Itens:</strong> Colete itens para ajudar na sua jornada</p>
                     <p>⚡ <strong>Escolhas:</strong> Cada decisão afeta o destino da sua aventura</p>
                     <p>🔦 <strong>Dica:</strong> Explore tudo e preste atenção aos detalhes!</p>
+                    <p>💾 <strong>Progresso:</strong> Seu jogo é salvo automaticamente</p>
                 </div>
                 <div class="choices">
                     <button class="choice-btn" onclick="showScreen('screen-start')">🔙 VOLTAR</button>
@@ -354,7 +507,7 @@
                 <div class="choices">
                     <button class="choice-btn" onclick="loseHealth(3, 'screen-level2-2')">💀 TENTAR ABRIR À FORÇA</button>
                     <button class="choice-btn" onclick="useItem('lanterna', 'screen-level3-1', 'screen-level2-4')">🔦 USAR LANTERNA</button>
-                    <button class="choice-btn" onclick="showScreen('screen-level2-4')">📱 USAR CELULAR</button>
+                    <button class="choice-btn" onclick="useItem('chave', 'screen-level3-1', 'screen-level2-4')">🗝️ USAR CHAVE</button>
                 </div>
             </div>
         </div>
@@ -456,6 +609,7 @@
                     <p>Usando as informações do diário, você revela o verdadeiro nome do demônio que controla o culto!</p>
                     <p>O ritual é quebrado e as almas presas são libertadas.</p>
                     <p>🌟 Você salvou não apenas a si mesmo, mas todos que estavam presos na mansão!</p>
+                    <p class="score-text">Pontuação final: <span id="final-score1">0</span></p>
                 </div>
                 <button class="restart-btn" onclick="restartGame()">🔄 JOGAR NOVAMENTE</button>
             </div>
@@ -468,6 +622,7 @@
                     <p>O amuleto antigo emite uma luz brilhante que dissipa as entidades malignas!</p>
                     <p>O culto é destruído e a mansão finalmente encontra paz.</p>
                     <p>✨ Sua preparação e cuidado foram recompensados!</p>
+                    <p class="score-text">Pontuação final: <span id="final-score2">0</span></p>
                 </div>
                 <button class="restart-btn" onclick="restartGame()">🔄 JOGAR NOVAMENTE</button>
             </div>
@@ -480,6 +635,7 @@
                     <p>Você escapa pela floresta enquanto a mansão desmorona atrás de você!</p>
                     <p>As autoridades acreditam na sua história e selam a área para sempre.</p>
                     <p>🌅 Você sobreviveu para contar a história!</p>
+                    <p class="score-text">Pontuação final: <span id="final-score3">0</span></p>
                 </div>
                 <button class="restart-btn" onclick="restartGame()">🔄 JOGAR NOVAMENTE</button>
             </div>
@@ -535,21 +691,61 @@
                 <!-- Itens serão adicionados por JavaScript -->
             </div>
         </div>
+
+        <div class="score-display">
+            Pontuação: <span id="score">0</span>
+        </div>
+
+        <div class="hint-container" id="hint-container">
+            <p id="hint-text">Dica: Explore todos os locais para encontrar itens úteis!</p>
+            <button class="hint-btn" onclick="hideHint()">Fechar Dica</button>
+        </div>
+
+        <div class="game-controls">
+            <button class="control-btn" onclick="toggleSound()" id="sound-btn">🔊 Som</button>
+            <button class="control-btn" onclick="showHint()">💡 Dica</button>
+            <button class="control-btn" onclick="saveGame()">💾 Salvar</button>
+        </div>
     </div>
+
+    <audio id="background-music" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-horror-dream-535.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="sound-effect">
+        <source src="" type="audio/mpeg">
+    </audio>
 
     <script>
         // Estado do jogo
         let gameState = {
             health: 5,
             inventory: [],
-            currentScreen: 'screen-start'
+            currentScreen: 'screen-start',
+            score: 0,
+            soundEnabled: true,
+            level: 1
         };
 
         // Inicializar jogo
         function initGame() {
+            // Verificar se há um jogo salvo
+            const savedGame = localStorage.getItem('mansaoAssombradaSave');
+            if (savedGame) {
+                document.getElementById('continue-btn').style.display = 'block';
+            }
+            
             updateHearts();
             updateInventory();
+            updateScore();
             showScreen('screen-start');
+            
+            // Iniciar música de fundo
+            const bgMusic = document.getElementById('background-music');
+            bgMusic.volume = 0.3;
+            if (gameState.soundEnabled) {
+                bgMusic.play().catch(e => console.log("Autoplay bloqueado: ", e));
+            }
         }
 
         // Mostrar tela específica
@@ -562,6 +758,14 @@
             // Mostrar tela desejada
             document.getElementById(screenId).classList.add('active');
             gameState.currentScreen = screenId;
+            
+            // Atualizar nível atual
+            if (screenId.includes('level1')) gameState.level = 1;
+            if (screenId.includes('level2')) gameState.level = 2;
+            if (screenId.includes('level3')) gameState.level = 3;
+            
+            // Salvar automaticamente
+            saveGame();
         }
 
         // Atualizar corações
@@ -571,8 +775,8 @@
             
             for (let i = 0; i < 5; i++) {
                 const heart = document.createElement('div');
-                heart.className = 'heart';
-                heart.textContent = i < gameState.health ? '❤️' : '🖤';
+                heart.className = i < gameState.health ? 'heart' : 'heart lost';
+                heart.textContent = '❤️';
                 heartsContainer.appendChild(heart);
             }
         }
@@ -586,6 +790,7 @@
                 const itemElement = document.createElement('div');
                 itemElement.className = 'inventory-item';
                 itemElement.textContent = getItemIcon(item) + ' ' + item;
+                itemElement.onclick = () => useInventoryItem(item);
                 inventoryContainer.appendChild(itemElement);
             });
         }
@@ -601,10 +806,50 @@
             return icons[item] || '📦';
         }
 
+        // Usar item do inventário
+        function useInventoryItem(item) {
+            // Efeito sonoro
+            playSound('item');
+            
+            // Mostrar mensagem sobre o item
+            alert(`Você examina o ${item}...`);
+            
+            // Dicas específicas para cada item
+            let hint = "";
+            switch(item) {
+                case 'lanterna':
+                    hint = "A lanterna pode iluminar áreas escuras. Talvez seja útil em algum lugar sem luz...";
+                    break;
+                case 'diario':
+                    hint = "O diário contém informações sobre o culto e seus rituais. Pode ser útil contra o líder.";
+                    break;
+                case 'chave':
+                    hint = "Esta chave parece antiga. Talvez abra alguma porta trancada na mansão.";
+                    break;
+                case 'amuleto':
+                    hint = "O amuleto emite uma energia protetora. Pode ser útil contra entidades malignas.";
+                    break;
+            }
+            
+            if (hint) {
+                document.getElementById('hint-text').textContent = hint;
+                document.getElementById('hint-container').style.display = 'block';
+            }
+        }
+
         // Perder vida
         function loseHealth(amount, nextScreen) {
             gameState.health -= amount;
             updateHearts();
+            
+            // Efeito de tela tremendo
+            document.querySelector('.game-container').classList.add('shake');
+            setTimeout(() => {
+                document.querySelector('.game-container').classList.remove('shake');
+            }, 500);
+            
+            // Efeito sonoro
+            playSound('damage');
             
             if (gameState.health <= 0) {
                 gameState.health = 0;
@@ -612,6 +857,10 @@
             } else {
                 showScreen(nextScreen);
             }
+            
+            // Atualizar pontuação
+            gameState.score -= amount * 10;
+            updateScore();
         }
 
         // Encontrar item
@@ -620,19 +869,49 @@
                 gameState.inventory.push(item);
                 updateInventory();
                 
+                // Efeito sonoro
+                playSound('item');
+                
                 // Mostrar mensagem de item encontrado
                 alert(`🎉 Você encontrou: ${getItemIcon(item)} ${item.toUpperCase()}!`);
+                
+                // Adicionar pontos por encontrar item
+                gameState.score += 50;
+                updateScore();
             }
             showScreen(nextScreen);
         }
 
-        // Usar item
+        // Usar item em situação específica
         function useItem(item, successScreen, failScreen) {
             if (gameState.inventory.includes(item)) {
+                // Efeito sonoro
+                playSound('success');
+                
+                // Adicionar pontos por usar item corretamente
+                gameState.score += 100;
+                updateScore();
+                
                 showScreen(successScreen);
             } else {
                 showScreen(failScreen);
             }
+        }
+
+        // Iniciar novo jogo
+        function startGame() {
+            gameState = {
+                health: 5,
+                inventory: [],
+                currentScreen: 'screen-level1-1',
+                score: 0,
+                soundEnabled: gameState.soundEnabled,
+                level: 1
+            };
+            updateHearts();
+            updateInventory();
+            updateScore();
+            showScreen('screen-level1-1');
         }
 
         // Reiniciar jogo
@@ -640,9 +919,123 @@
             gameState = {
                 health: 5,
                 inventory: [],
-                currentScreen: 'screen-start'
+                currentScreen: 'screen-start',
+                score: 0,
+                soundEnabled: gameState.soundEnabled,
+                level: 1
             };
-            initGame();
+            updateHearts();
+            updateInventory();
+            updateScore();
+            showScreen('screen-start');
+        }
+
+        // Atualizar pontuação
+        function updateScore() {
+            document.getElementById('score').textContent = gameState.score;
+            
+            // Atualizar também nos finais
+            document.getElementById('final-score1').textContent = gameState.score;
+            document.getElementById('final-score2').textContent = gameState.score;
+            document.getElementById('final-score3').textContent = gameState.score;
+        }
+
+        // Mostrar dica
+        function showHint() {
+            let hint = "";
+            
+            // Dicas baseadas no nível atual
+            switch(gameState.level) {
+                case 1:
+                    hint = "Dica: Explore todos os locais do nível 1 para encontrar itens úteis. A janela quebrada e o porão podem esconder segredos!";
+                    break;
+                case 2:
+                    hint = "Dica: No nível 2, preste atenção aos sons. Às vezes fugir não é a melhor opção. Itens como a lanterna podem ser úteis em áreas escuras.";
+                    break;
+                case 3:
+                    hint = "Dica: No nível 3, você precisará de itens específicos para enfrentar o culto. Verifique seu inventário e pense estrategicamente!";
+                    break;
+                default:
+                    hint = "Dica: Explore tudo e preste atenção aos detalhes! Itens coletados podem ser cruciais mais tarde.";
+            }
+            
+            document.getElementById('hint-text').textContent = hint;
+            document.getElementById('hint-container').style.display = 'block';
+        }
+
+        // Esconder dica
+        function hideHint() {
+            document.getElementById('hint-container').style.display = 'none';
+        }
+
+        // Tocar efeito sonoro
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+            
+            const soundEffect = document.getElementById('sound-effect');
+            let soundUrl = "";
+            
+            switch(type) {
+                case 'item':
+                    soundUrl = "https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3";
+                    break;
+                case 'damage':
+                    soundUrl = "https://assets.mixkit.co/sfx/preview/mixkit-cinematic-horror-swell-283.mp3";
+                    break;
+                case 'success':
+                    soundUrl = "https://assets.mixkit.co/sfx/preview/mixkit-magic-potion-music-and-fx-2831.mp3";
+                    break;
+            }
+            
+            if (soundUrl) {
+                soundEffect.src = soundUrl;
+                soundEffect.play().catch(e => console.log("Erro ao tocar som: ", e));
+            }
+        }
+
+        // Alternar som
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            const soundBtn = document.getElementById('sound-btn');
+            const bgMusic = document.getElementById('background-music');
+            
+            if (gameState.soundEnabled) {
+                soundBtn.textContent = "🔊 Som";
+                bgMusic.play().catch(e => console.log("Autoplay bloqueado: ", e));
+            } else {
+                soundBtn.textContent = "🔇 Mudo";
+                bgMusic.pause();
+            }
+        }
+
+        // Salvar jogo
+        function saveGame() {
+            const saveData = {
+                health: gameState.health,
+                inventory: gameState.inventory,
+                currentScreen: gameState.currentScreen,
+                score: gameState.score,
+                level: gameState.level
+            };
+            localStorage.setItem('mansaoAssombradaSave', JSON.stringify(saveData));
+        }
+
+        // Carregar jogo
+        function loadGame() {
+            const savedGame = localStorage.getItem('mansaoAssombradaSave');
+            if (savedGame) {
+                const savedState = JSON.parse(savedGame);
+                gameState.health = savedState.health;
+                gameState.inventory = savedState.inventory;
+                gameState.currentScreen = savedState.currentScreen;
+                gameState.score = savedState.score;
+                gameState.level = savedState.level;
+                
+                updateHearts();
+                updateInventory();
+                updateScore();
+                showScreen(gameState.currentScreen);
+            }
         }
 
         // Iniciar o jogo quando a página carregar
